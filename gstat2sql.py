@@ -163,70 +163,70 @@ class GStatToSQL:
         index = IndexStat()
         for line in self.fd:
             # Processing table
-            if re.search(table.re['name'], line):
-                table.name = re.match(table.re['name'], line).group(1)
-            elif re.search(table.re['ppp'], line):
+            if table.re['name'].search(line):
+                table.name = table.re['name'].search(line).group(1)
+            elif table.re['ppp'].search(line):
                 pass
-            elif re.search(table.re['avg_rec_len'], line):
-                table.rec_avg_len = re.search(table.re['avg_rec_len'], line).group(1)
-                table.rec_total = re.search(table.re['avg_rec_len'], line).group(2)
-            elif re.search(table.re['avg_ver_len'], line):
-                table.ver_avg_len = re.search(table.re['avg_ver_len'], line).group(1)
-                table.ver_total = re.search(table.re['avg_ver_len'], line).group(2)
-                table.ver_max = re.search(table.re['avg_ver_len'], line).group(3)
-            elif re.search(table.re['avg_fr_len'], line):
-                table.frag_avg_len = re.search(table.re['avg_fr_len'], line).group(1)
-                table.frag_total = re.search(table.re['avg_fr_len'], line).group(2)
-                table.frag_max = re.search(table.re['avg_fr_len'], line).group(3)
-            elif re.search(table.re['blobs'], line):
-                table.blob_total = re.search(table.re['blobs'], line).group(1)
-                table.blob_total_length = re.search(table.re['blobs'], line).group(2)
-                table.blob_pages = re.search(table.re['blobs'], line).group(3)
-            elif re.search(table.re['blobs_levels'], line):
-                table.blob_level0 = re.search(table.re['blobs_levels'], line).group(1)
-                table.blob_level1 = re.search(table.re['blobs_levels'], line).group(2)
-                table.blob_level2 = re.search(table.re['blobs_levels'], line).group(3)
-            elif re.search(table.re['data_pages'], line):
-                table.pages_data = re.search(table.re['data_pages'], line).group(1)
-                table.pages_slot = re.search(table.re['data_pages'], line).group(2)
-                table.pages_fill_avg = re.search(table.re['data_pages'], line).group(3)
-            elif re.search(table.re['big_record_pages'], line):
-                table.pages_big = re.search(table.re['big_record_pages'], line).group(1)
-            elif re.search(table.re['fill_distribution'], line):
+            elif table.re['avg_rec_len'].search(line):
+                table.rec_avg_len = table.re['avg_rec_len'].search(line).group(1)
+                table.rec_total = table.re['avg_rec_len'].search(line).group(2)
+            elif table.re['avg_ver_len'].search(line):
+                table.ver_avg_len = table.re['avg_ver_len'].search(line).group(1)
+                table.ver_total = table.re['avg_ver_len'].search(line).group(2)
+                table.ver_max = table.re['avg_ver_len'].search(line).group(3)
+            elif table.re['avg_fr_len'].search(line):
+                table.frag_avg_len = table.re['avg_fr_len'].search(line).group(1)
+                table.frag_total = table.re['avg_fr_len'].search(line).group(2)
+                table.frag_max = table.re['avg_fr_len'].search(line).group(3)
+            elif table.re['blobs'].search(line):
+                table.blob_total = table.re['blobs'].search(line).group(1)
+                table.blob_total_length = table.re['blobs'].search(line).group(2)
+                table.blob_pages = table.re['blobs'].search(line).group(3)
+            elif table.re['blobs_levels'].search(line):
+                table.blob_level0 = table.re['blobs_levels'].search(line).group(1)
+                table.blob_level1 = table.re['blobs_levels'].search(line).group(2)
+                table.blob_level2 = table.re['blobs_levels'].search(line).group(3)
+            elif table.re['data_pages'].search(line):
+                table.pages_data = table.re['data_pages'].search(line).group(1)
+                table.pages_slot = table.re['data_pages'].search(line).group(2)
+                table.pages_fill_avg = table.re['data_pages'].search(line).group(3)
+            elif table.re['big_record_pages'].search(line):
+                table.pages_big = table.re['big_record_pages'].search(line).group(1)
+            elif table.re['fill_distribution'].search(line):
                 pass
-            elif re.search(table.re['fill_0-19'], line):
-                table.fill_20 = re.search(table.re['fill_0-19'], line).group(1)
-            elif re.search(table.re['fill_20-39'], line):
-                table.fill_40 = re.search(table.re['fill_20-39'], line).group(1)
-            elif re.search(table.re['fill_40-59'], line):
-                table.fill_60 = re.search(table.re['fill_40-59'], line).group(1)
-            elif re.search(table.re['fill_60-79'], line):
-                table.fill_70 = re.search(table.re['fill_60-79'], line).group(1)
-            elif re.search(table.re['fill_80-99'], line):
-                table.fill_99 = re.search(table.re['fill_80-99'], line).group(1)
+            elif table.re['fill_0-19'].search(line):
+                table.fill_20 = table.re['fill_0-19'].search(line).group(1)
+            elif table.re['fill_20-39'].search(line):
+                table.fill_40 = table.re['fill_20-39'].search(line).group(1)
+            elif table.re['fill_40-59'].search(line):
+                table.fill_60 = table.re['fill_40-59'].search(line).group(1)
+            elif table.re['fill_60-79'].search(line):
+                table.fill_70 = table.re['fill_60-79'].search(line).group(1)
+            elif table.re['fill_80-99'].search(line):
+                table.fill_99 = table.re['fill_80-99'].search(line).group(1)
             # Processing index
-            elif re.search(index.re['name'], line):
-                index.name = re.search(index.re['name'], line).group(1)
-            elif re.search(index.re['depth'], line):
-                index.depth = re.search(index.re['depth'], line).group(1)
-                index.leaf_buckets = re.search(index.re['depth'], line).group(2)
-                index.nodes = re.search(index.re['depth'], line).group(3)
-            elif re.search(index.re['avg_data_len'], line):
-                index.avg_length = re.search(index.re['avg_data_len'], line).group(1)
-                index.dup_total = re.search(index.re['avg_data_len'], line).group(2)
-                index.dup_max = re.search(index.re['avg_data_len'], line).group(3)
-            elif re.search(index.re['fill_distribution'], line):
+            elif index.re['name'].search(line):
+                index.name = index.re['name'].search(line).group(1)
+            elif index.re['depth'].search(line):
+                index.depth = index.re['depth'].search(line).group(1)
+                index.leaf_buckets = index.re['depth'].search(line).group(2)
+                index.nodes = index.re['depth'].search(line).group(3)
+            elif index.re['avg_data_len'].search(line):
+                index.avg_length = index.re['avg_data_len'].search(line).group(1)
+                index.dup_total = index.re['avg_data_len'].search(line).group(2)
+                index.dup_max = index.re['avg_data_len'].search(line).group(3)
+            elif index.re['fill_distribution'].search(line):
                 pass
-            elif re.search(index.re['fill_0-19'], line):
-                index.fill_20 = re.search(index.re['fill_0-19'], line).group(1)
-            elif re.search(index.re['fill_20-39'], line):
-                index.fill_40 = re.search(index.re['fill_20-39'], line).group(1)
-            elif re.search(index.re['fill_40-59'], line):
-                index.fill_60 = re.search(index.re['fill_40-59'], line).group(1)
-            elif re.search(index.re['fill_60-79'], line):
-                index.fill_80 = re.search(index.re['fill_60-79'], line).group(1)
-            elif re.search(index.re['fill_80-99'], line):
-                index.fill_99 = re.search(index.re['fill_80-99'], line).group(1)
+            elif index.re['fill_0-19'].search(line):
+                index.fill_20 = index.re['fill_0-19'].search(line).group(1)
+            elif index.re['fill_20-39'].search(line):
+                index.fill_40 = index.re['fill_20-39'].search(line).group(1)
+            elif index.re['fill_40-59'].search(line):
+                index.fill_60 = index.re['fill_40-59'].search(line).group(1)
+            elif index.re['fill_60-79'].search(line):
+                index.fill_80 = index.re['fill_60-79'].search(line).group(1)
+            elif index.re['fill_80-99'].search(line):
+                index.fill_99 = index.re['fill_80-99'].search(line).group(1)
             elif line == '\n':
                 if table.name:
                     cursor.execute(
