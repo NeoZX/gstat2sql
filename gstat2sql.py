@@ -159,7 +159,7 @@ class GStatToSQL:
         # begin transaction
         cursor = connection.cursor()
         # insert into DB returning id
-        cursor.execute("insert into DB (\"NAME\", PAGE_SIZE, CREATE_DATE, \"DATE\") values (?, ?, ?, ?) returning ID;",
+        cursor.execute("update or insert into DB (\"NAME\", PAGE_SIZE, CREATE_DATE, \"DATE\") values (?, ?, ?, ?) matching (\"NAME\", \"DATE\") returning ID;",
                        (self.db_name, self.page_size, self.create_date, self.gstat_date))
         db_id = cursor.fetchone()[0]
         table = TableStat()
@@ -259,14 +259,15 @@ class GStatToSQL:
             elif line == '\n':
                 if table.name:
                     cursor.execute(
-                        "insert into TBL (DB_ID, \"NAME\", REC_AVG_LEN, REC_TOTAL, "
+                        "update or insert into TBL (DB_ID, \"NAME\", REC_AVG_LEN, REC_TOTAL, "
                         "VER_AVG_LEN, VER_TOTAL, VER_MAX, "
                         "FRAG_AVG_LEN, FRAG_TOTAL, FRAG_MAX, "
                         "BLOB_TOTAL, BLOB_TOTAL_LENGTH, BLOB_PAGES, "
                         "BLOB_LEVEL1, BLOB_LEVEL2, BLOB_LEVEL3, "
                         "PAGES_DATA, PAGES_SLOT, PAGES_FILL_AVG, PAGES_BIG, "
                         "FILL_20, FILL_40, FILL_60, FILL_80, FILL_99) "
-                        "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                        "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                        "matching (DB_ID, \"NAME\") "
                         "returning ID;",
                         (db_id, table.name, table.rec_avg_len, table.rec_total,
                          table.ver_avg_len, table.ver_total, table.ver_max,
@@ -280,10 +281,11 @@ class GStatToSQL:
                 elif index.name:
                     # insert data about index
                     cursor.execute(
-                        "insert into IDX (DB_ID, TBL_ID, \"NAME\", DEPTH, LEAF_BUCKETS, NODES, "
+                        "update or insert into IDX (DB_ID, TBL_ID, \"NAME\", DEPTH, LEAF_BUCKETS, NODES, "
                         "AVG_LENGTH, DUP_TOTAL, DUP_MAX, "
                         "FILL_20, FILL_40, FILL_60, FILL_80, FILL_99) "
-                        "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);",
+                        "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                        "matching (DB_ID, TBL_ID, \"NAME\");",
                         (db_id, tbl_id, index.name, index.depth, index.leaf_buckets, index.nodes,
                          index.avg_length, index.dup_total, index.dup_max,
                          index.fill_20, index.fill_40, index.fill_60, index.fill_80, index.fill_99)
