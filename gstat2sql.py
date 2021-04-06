@@ -128,7 +128,7 @@ class GStatToSQL:
 
     def __init__(self, gstat_file, gstat_date=date.today(), dsn='', db_user=None, db_pass=None, db_charset='UTF-8'):
         """Class init description here"""
-        self.fd = open(gstat_file)
+        self.gstat_file = gstat_file
         self.gstat_date = gstat_date
         self.dsn = dsn
         self.db_user = db_user
@@ -140,17 +140,21 @@ class GStatToSQL:
 
     def processing(self):
         """Class functions descriptions"""
-        for line in self.fd:
+        fd = open(self.gstat_file)
+        line = 'start'
+        while line != '':
+            line = fd.readline()
             if line == "Analyzing database pages ...\n":
                 break
-            if re.search('^Database "([^"]+)"$', line):
+            if line == "\n":
+                pass
+            elif re.search(r'^Database "([^"]+)"$', line):
                 self.db_name = re.search('^Database "([^"]+)"$', line).group(1)
             elif re.search('^\tPage size\t\t([0-9]+)$', line):
                 self.page_size = re.search('^\tPage size\t\t([0-9]+)$', line).group(1)
             if re.match('^\tCreation date\t\t([A-Za-z]{3} [0-9]{1,2}, [0-9]{4} [0-9:]{7,8})$', line):
                 self.create_date = re.search('^\tCreation date\t\t([A-Za-z]{3} [0-9]{1,2}, [0-9]{4} [0-9:]{7,8})$',
                                              line).group(1)
-            line = self.fd.readline
         connection = fdb.connect(dsn=self.dsn, user=self.db_user, password=self.db_pass, charset=self.db_charset)
         # begin transaction
         cursor = connection.cursor()
@@ -161,31 +165,41 @@ class GStatToSQL:
         table = TableStat()
         tbl_id = None
         index = IndexStat()
-        for line in self.fd:
+        line = fd.readline()
+        while line != '':
             # Processing table
             if table.re['name'].search(line):
                 table.name = table.re['name'].search(line).group(1)
-            elif table.re['ppp'].search(line):
-                pass
+                line = fd.readline()
+                if table.re['ppp'].search(line):
+                    line = fd.readline()
+                continue
             elif table.re['avg_rec_len'].search(line):
                 table.rec_avg_len = table.re['avg_rec_len'].search(line).group(1)
                 table.rec_total = table.re['avg_rec_len'].search(line).group(2)
-            elif table.re['avg_ver_len'].search(line):
-                table.ver_avg_len = table.re['avg_ver_len'].search(line).group(1)
-                table.ver_total = table.re['avg_ver_len'].search(line).group(2)
-                table.ver_max = table.re['avg_ver_len'].search(line).group(3)
-            elif table.re['avg_fr_len'].search(line):
-                table.frag_avg_len = table.re['avg_fr_len'].search(line).group(1)
-                table.frag_total = table.re['avg_fr_len'].search(line).group(2)
-                table.frag_max = table.re['avg_fr_len'].search(line).group(3)
+                line = fd.readline()
+                if table.re['avg_ver_len'].search(line):
+                    table.ver_avg_len = table.re['avg_ver_len'].search(line).group(1)
+                    table.ver_total = table.re['avg_ver_len'].search(line).group(2)
+                    table.ver_max = table.re['avg_ver_len'].search(line).group(3)
+                    line = fd.readline()
+                    if table.re['avg_fr_len'].search(line):
+                        table.frag_avg_len = table.re['avg_fr_len'].search(line).group(1)
+                        table.frag_total = table.re['avg_fr_len'].search(line).group(2)
+                        table.frag_max = table.re['avg_fr_len'].search(line).group(3)
+                        line = fd.readline()
+                continue
             elif table.re['blobs'].search(line):
                 table.blob_total = table.re['blobs'].search(line).group(1)
                 table.blob_total_length = table.re['blobs'].search(line).group(2)
                 table.blob_pages = table.re['blobs'].search(line).group(3)
-            elif table.re['blobs_levels'].search(line):
-                table.blob_level0 = table.re['blobs_levels'].search(line).group(1)
-                table.blob_level1 = table.re['blobs_levels'].search(line).group(2)
-                table.blob_level2 = table.re['blobs_levels'].search(line).group(3)
+                line = fd.readline()
+                if table.re['blobs_levels'].search(line):
+                    table.blob_level0 = table.re['blobs_levels'].search(line).group(1)
+                    table.blob_level1 = table.re['blobs_levels'].search(line).group(2)
+                    table.blob_level2 = table.re['blobs_levels'].search(line).group(3)
+                    line = fd.readline()
+                continue
             elif table.re['data_pages'].search(line):
                 table.pages_data = table.re['data_pages'].search(line).group(1)
                 table.pages_slot = table.re['data_pages'].search(line).group(2)
@@ -193,40 +207,55 @@ class GStatToSQL:
             elif table.re['big_record_pages'].search(line):
                 table.pages_big = table.re['big_record_pages'].search(line).group(1)
             elif table.re['fill_distribution'].search(line):
-                pass
-            elif table.re['fill_0-19'].search(line):
-                table.fill_20 = table.re['fill_0-19'].search(line).group(1)
-            elif table.re['fill_20-39'].search(line):
-                table.fill_40 = table.re['fill_20-39'].search(line).group(1)
-            elif table.re['fill_40-59'].search(line):
-                table.fill_60 = table.re['fill_40-59'].search(line).group(1)
-            elif table.re['fill_60-79'].search(line):
-                table.fill_70 = table.re['fill_60-79'].search(line).group(1)
-            elif table.re['fill_80-99'].search(line):
-                table.fill_99 = table.re['fill_80-99'].search(line).group(1)
+                line = fd.readline()
+                if table.re['fill_0-19'].search(line):
+                    table.fill_20 = table.re['fill_0-19'].search(line).group(1)
+                    line = fd.readline()
+                    if table.re['fill_20-39'].search(line):
+                        table.fill_40 = table.re['fill_20-39'].search(line).group(1)
+                        line = fd.readline()
+                        if table.re['fill_40-59'].search(line):
+                            table.fill_60 = table.re['fill_40-59'].search(line).group(1)
+                            line = fd.readline()
+                            if table.re['fill_60-79'].search(line):
+                                table.fill_70 = table.re['fill_60-79'].search(line).group(1)
+                                line = fd.readline()
+                                if table.re['fill_80-99'].search(line):
+                                    table.fill_99 = table.re['fill_80-99'].search(line).group(1)
+                                    line = fd.readline()
+                continue
             # Processing index
             elif index.re['name'].search(line):
                 index.name = index.re['name'].search(line).group(1)
-            elif index.re['depth'].search(line):
-                index.depth = index.re['depth'].search(line).group(1)
-                index.leaf_buckets = index.re['depth'].search(line).group(2)
-                index.nodes = index.re['depth'].search(line).group(3)
-            elif index.re['avg_data_len'].search(line):
-                index.avg_length = index.re['avg_data_len'].search(line).group(1)
-                index.dup_total = index.re['avg_data_len'].search(line).group(2)
-                index.dup_max = index.re['avg_data_len'].search(line).group(3)
-            elif index.re['fill_distribution'].search(line):
-                pass
-            elif index.re['fill_0-19'].search(line):
-                index.fill_20 = index.re['fill_0-19'].search(line).group(1)
-            elif index.re['fill_20-39'].search(line):
-                index.fill_40 = index.re['fill_20-39'].search(line).group(1)
-            elif index.re['fill_40-59'].search(line):
-                index.fill_60 = index.re['fill_40-59'].search(line).group(1)
-            elif index.re['fill_60-79'].search(line):
-                index.fill_80 = index.re['fill_60-79'].search(line).group(1)
-            elif index.re['fill_80-99'].search(line):
-                index.fill_99 = index.re['fill_80-99'].search(line).group(1)
+                line = fd.readline()
+                if index.re['depth'].search(line):
+                    index.depth = index.re['depth'].search(line).group(1)
+                    index.leaf_buckets = index.re['depth'].search(line).group(2)
+                    index.nodes = index.re['depth'].search(line).group(3)
+                    line = fd.readline()
+                    if index.re['avg_data_len'].search(line):
+                        index.avg_length = index.re['avg_data_len'].search(line).group(1)
+                        index.dup_total = index.re['avg_data_len'].search(line).group(2)
+                        index.dup_max = index.re['avg_data_len'].search(line).group(3)
+                        line = fd.readline()
+                        if index.re['fill_distribution'].search(line):
+                            line = fd.readline()
+                            if index.re['fill_0-19'].search(line):
+                                index.fill_20 = index.re['fill_0-19'].search(line).group(1)
+                                line = fd.readline()
+                                if index.re['fill_20-39'].search(line):
+                                    index.fill_40 = index.re['fill_20-39'].search(line).group(1)
+                                    line = fd.readline()
+                                    if index.re['fill_40-59'].search(line):
+                                        index.fill_60 = index.re['fill_40-59'].search(line).group(1)
+                                        line = fd.readline()
+                                        if index.re['fill_60-79'].search(line):
+                                            index.fill_80 = index.re['fill_60-79'].search(line).group(1)
+                                            line = fd.readline()
+                                            if index.re['fill_80-99'].search(line):
+                                                index.fill_99 = index.re['fill_80-99'].search(line).group(1)
+                                                line = fd.readline()
+                continue
             elif line == '\n':
                 if table.name:
                     cursor.execute(
@@ -261,9 +290,10 @@ class GStatToSQL:
                     )
                     index.reset_stat()
             else:
-                print("Unrecognized string:")
+                print("Unrecognized string at ", fd.tell())
                 print(line)
                 connection.rollback()
                 exit(1)
+            line = fd.readline()
         connection.commit()
-        self.fd.close()
+        fd.close()
