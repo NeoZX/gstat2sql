@@ -5,6 +5,70 @@ import fdb
 from datetime import date
 
 
+class DBHeaderStat:
+    """Class description"""
+    def __init__(self):
+        """Class init description here"""
+        self.value = {
+            'database': None,
+            'flags': None,
+            'generation': None,
+            'sys_change_num': None,
+            'page_size': None,
+            'server': None,
+            'ods_version': None,
+            'oldest_transaction': None,
+            'oldest_active': None,
+            'oldest_snapshot': None,
+            'next_transaction': None,
+            'bumped_transaction': None,
+            'sequence_number': None,
+            'next_attachment_id': None,
+            'implementation': None,
+            'shadow_count': None,
+            'page_buffers': None,
+            'next_header_page': None,
+            'database_dialect': None,
+            'create_date': None,
+            'attributes': None
+        }
+        self.re_skip_lines = re.compile('^(Gstat execution|'
+                                        'Database header page information|'
+                                        '\tFlags\t\t\t|'
+                                        '\tChecksum\t\t|'
+                                        '\tImplementation ID\t).+$')
+        self.re = {
+            'database': re.compile('^Database "(.+)"$'),
+            'flags': re.compile('^\tFlags\t\t([0-9]+)$'),
+            'generation': re.compile('^\tGeneration\t\t([0-9]+)$'),
+            'sys_change_num': re.compile('^\tSystem Change Number\t([0-9]+)$'),
+            'page_size': re.compile('^\tPage size\t\t([0-9]+)$'),
+            'server': re.compile('^\tServer\t\t\t(.+)$'),
+            'ods_version': re.compile('^\tODS version\t\t([0-9\.]+)$'),
+            'oldest_transaction': re.compile('^\tOldest transaction\t([0-9]+)$'),
+            'oldest_active': re.compile('^\tOldest active\t\t([0-9]+)$'),
+            'oldest_snapshot': re.compile('^\tOldest snapshot\t\t([0-9]+)$'),
+            'next_transaction': re.compile('^\tNext transaction\t([0-9]+)$'),
+            'bumped_transaction': re.compile('\tBumped transaction\t([0-9]+)$'),
+            'sequence_number': re.compile('^\tSequence number\t\t([0-9]+)$'),
+            'next_attachment_id': re.compile('\tNext attachment ID\t([0-9]+)$'),
+            'implementation': re.compile('\tImplementation\t\t(.+)$'),
+            'shadow_count': re.compile('\tShadow count\t\t([0-9]+)$'),
+            'page_buffers': re.compile('\tPage buffers\t\t([0-9]+)$'),
+            'next_header_page': re.compile('\tNext header page\t([0-9]+)$'),
+            'database_dialect': re.compile('\tDatabase dialect\t([0-9]+)$'),
+            'create_date': re.compile('\tCreation date\t\t([A-Za-z]{3} [0-9]{1,2}, [0-9]{4} [0-9:]{7,8})$'),
+            'attributes': re.compile('\tAttributes\t\t(.+)$')
+        }
+
+    def process_line(self, line):
+        for key in self.re.keys():
+            if self.re[key].search(line):
+                self.value[key] = self.re[key].search(line).group(1)
+                return 'ok'
+        return None
+
+
 class TableStat:
     """Class description"""
     def __init__(self):
@@ -142,25 +206,50 @@ class GStatToSQL:
         """Class functions descriptions"""
         fd = open(self.gstat_file)
         line = 'start'
+        db_header = DBHeaderStat()
         while line != '':
             line = fd.readline()
             if line == "Analyzing database pages ...\n":
                 break
             if line == "\n":
                 pass
-            elif re.search(r'^Database "([^"]+)"$', line):
-                self.db_name = re.search('^Database "([^"]+)"$', line).group(1)
-            elif re.search('^\tPage size\t\t([0-9]+)$', line):
-                self.page_size = re.search('^\tPage size\t\t([0-9]+)$', line).group(1)
-            if re.match('^\tCreation date\t\t([A-Za-z]{3} [0-9]{1,2}, [0-9]{4} [0-9:]{7,8})$', line):
-                self.create_date = re.search('^\tCreation date\t\t([A-Za-z]{3} [0-9]{1,2}, [0-9]{4} [0-9:]{7,8})$',
-                                             line).group(1)
+            elif db_header.re_skip_lines.search(line):
+                pass
+            elif db_header.process_line(line):
+                pass
+            elif line == "    Variable header data:\n":
+                #Skip Variable header data
+                while line != "Analyzing database pages ...\n":
+                    line = fd.readline()
+                break
+            else:
+                print("Unrecognized string at ", fd.tell())
+                print(line)
+                exit(1)
         connection = fdb.connect(dsn=self.dsn, user=self.db_user, password=self.db_pass, charset=self.db_charset)
         # begin transaction
         cursor = connection.cursor()
         # insert into DB returning id
-        cursor.execute("update or insert into DB (\"NAME\", PAGE_SIZE, CREATE_DATE, \"DATE\") values (?, ?, ?, ?) matching (\"NAME\", \"DATE\") returning ID;",
-                       (self.db_name, self.page_size, self.create_date, self.gstat_date))
+        cursor.execute("update or insert into DB (\"NAME\", PAGE_SIZE, CREATE_DATE, "
+                       "\"DATE\", GENERATION, ODS_VERSION, "
+                       "OLDEST_TRANSACTION, OLDEST_ACTIVE, "
+                       "OLDEST_SNAPSHOT, NEXT_TRANSACTION, "
+                       "BUMPED_TRANSACTION, SEQUENCE_NUMBER, "
+                       "NEXT_ATTACHMENT_ID, IMPLEMENTATION, "
+                       "SHADOW_COUNT, PAGE_BUFFERS, "
+                       "NEXT_HEADER_PAGE, DATABASE_DIALECT, "
+                       "ATTRIBUTES) "
+                       "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                       "matching (\"NAME\", \"DATE\") returning ID;",
+                       (db_header.value['database'], db_header.value['page_size'], db_header.value['create_date'],
+                        self.gstat_date, db_header.value['generation'], db_header.value['ods_version'],
+                        db_header.value['oldest_transaction'], db_header.value['oldest_active'],
+                        db_header.value['oldest_snapshot'], db_header.value['next_transaction'],
+                        db_header.value['bumped_transaction'], db_header.value['sequence_number'],
+                        db_header.value['next_attachment_id'], db_header.value['implementation'],
+                        db_header.value['shadow_count'], db_header.value['page_buffers'],
+                        db_header.value['next_header_page'], db_header.value['database_dialect'],
+                        db_header.value['attributes']))
         db_id = cursor.fetchone()[0]
         table = TableStat()
         tbl_id = None
