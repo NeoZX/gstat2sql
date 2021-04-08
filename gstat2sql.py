@@ -245,7 +245,7 @@ class GStatToSQL:
             elif db_header.process_line(line):
                 pass
             elif line == "    Variable header data:\n":
-                #Skip Variable header data
+                # Skip Variable header data
                 while line != "Analyzing database pages ...\n":
                     line = fd.readline()
                 break
@@ -310,7 +310,7 @@ class GStatToSQL:
                 continue
             elif table.re['pack_effect'].search(line):
                 table.avg_unpack_length = table.re['pack_effect'].search(line).group(1)
-                table.compress_ratio = table.re['pack_effect'].search(line).group(1)
+                table.compress_ratio = table.re['pack_effect'].search(line).group(2)
             elif table.re['blobs'].search(line):
                 table.blob_total = table.re['blobs'].search(line).group(1)
                 table.blob_total_length = table.re['blobs'].search(line).group(2)
@@ -328,7 +328,7 @@ class GStatToSQL:
                 table.pages_fill_avg = table.re['data_pages'].search(line).group(3)
             elif table.re['pointer_pages'].search(line):
                 table.pointer_pages = table.re['pointer_pages'].search(line).group(1)
-                table.pages_slog = table.re['pointer_pages'].search(line).group(2)
+                table.pages_slot = table.re['pointer_pages'].search(line).group(2)
                 line = fd.readline()
                 if table.re['data_pages_fill'].search(line):
                     table.pages_data = table.re['data_pages_fill'].search(line).group(1)
@@ -358,7 +358,7 @@ class GStatToSQL:
                             table.fill_60 = table.re['fill_40-59'].search(line).group(1)
                             line = fd.readline()
                             if table.re['fill_60-79'].search(line):
-                                table.fill_70 = table.re['fill_60-79'].search(line).group(1)
+                                table.fill_80 = table.re['fill_60-79'].search(line).group(1)
                                 line = fd.readline()
                                 if table.re['fill_80-99'].search(line):
                                     table.fill_99 = table.re['fill_80-99'].search(line).group(1)
@@ -396,7 +396,7 @@ class GStatToSQL:
                                     index.cluster_ratio = index.re['clustering_factor'].search(line).group(2)
                                     line = fd.readline()
                     else:
-                        #error
+                        # error
                         continue
                     if index.re['fill_distribution'].search(line):
                         line = fd.readline()
