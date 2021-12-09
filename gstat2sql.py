@@ -7,6 +7,7 @@ from datetime import date
 
 class DBHeaderStat:
     """Class description"""
+
     def __init__(self):
         """Class init description here"""
         self.value = {
@@ -36,7 +37,8 @@ class DBHeaderStat:
                                         'Database header page information|'
                                         '\tFlags\t\t\t|'
                                         '\tChecksum\t\t|'
-                                        '\tImplementation ID\t).+$')
+                                        '\tImplementation ID\t|'
+                                        '\tAutosweep gap\t\t).+$')
         self.re = {
             'database': re.compile('^Database "(.+)"$'),
             'flags': re.compile('^\tFlags\t\t([0-9]+)$'),
@@ -71,6 +73,7 @@ class DBHeaderStat:
 
 class TableStat:
     """Class description"""
+
     def __init__(self):
         """Class init description here"""
         self.name = None
@@ -122,7 +125,8 @@ class TableStat:
             'data_pages': re.compile('^ {4}Data pages: ([0-9]+), data page slots: ([0-9]+), average fill: ([0-9]+)%'),
             'pointer_pages': re.compile('^ {4}Pointer pages: ([0-9]+), data page slots: ([0-9]+)$'),
             'data_pages_fill': re.compile('^ {4}Data pages: ([0-9]+), average fill: ([0-9]+)%'),
-            'primary_pages': re.compile('^ {4}Primary pages: ([0-9]+), secondary pages: ([0-9]+), swept pages: ([0-9]+)$'),
+            'primary_pages': re.compile(
+                '^ {4}Primary pages: ([0-9]+), secondary pages: ([0-9]+), swept pages: ([0-9]+)$'),
             'empty_full': re.compile('^ {4}Empty pages: ([0-9]+), full pages: ([0-9]+)$'),
             'big_record_pages': re.compile('^ {4}Big record pages: ([0-9]+)$'),
             'fill_distribution': re.compile('^ {4}Fill distribution:$'),
@@ -162,6 +166,7 @@ class TableStat:
 
 class IndexStat:
     """Class description here"""
+
     def __init__(self):
         """Class init"""
         self.name = None
@@ -462,6 +467,8 @@ class GStatToSQL:
                     index.reset_stat()
             elif re.search('^Gstat completion time ', line):
                 pass
+            elif re.search('^    Expected data on page [0-9]+$', line):
+                pass
             else:
                 print("Unrecognized string at ", fd.tell())
                 print(line)
@@ -470,3 +477,24 @@ class GStatToSQL:
             line = fd.readline()
         connection.commit()
         fd.close()
+
+
+if __name__ == '__main__':
+
+    from argparse import ArgumentParser
+    parser = ArgumentParser()
+    parser.add_argument('gstat_file', metavar='file', type=str, nargs=1, help='file with gstat output')
+    parser.add_argument('--date', metavar='date', type=str, default=date.today(),
+                        help='date of statistics collection, default today')
+    parser.add_argument('--user', metavar='user', type=str, default='SYSDBA', help='DB user, default SYSDBA')
+    parser.add_argument('--passwd', metavar='passwd', type=str, default='masterkey',
+                        help='DB password, default masterkey')
+    parser.add_argument('--dsn', metavar='dsn', type=str, default='localhost:gstat',
+                        help='DB connection string, default localhost:gstat')
+    args = parser.parse_args()
+
+    gstat = GStatToSQL(gstat_file=args.gstat_file[0], gstat_date=args.date, dsn=args.dsn, db_user=args.user,
+                       db_pass=args.passwd)
+    gstat.processing()
+
+    exit(0)
