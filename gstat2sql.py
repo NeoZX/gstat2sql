@@ -2,7 +2,7 @@
 
 import re
 import fdb
-from datetime import date
+from datetime import date, datetime
 
 
 class DBHeaderStat:
@@ -273,7 +273,8 @@ class GStatToSQL:
                        "ATTRIBUTES) "
                        "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                        "matching (\"NAME\", \"DATE\") returning ID;",
-                       (db_header.value['database'], db_header.value['page_size'], db_header.value['create_date'],
+                       (db_header.value['database'], db_header.value['page_size'],
+                        datetime.strptime(db_header.value['create_date'], '%b %d, %Y %H:%M:%S'),
                         self.gstat_date, db_header.value['generation'], db_header.value['ods_version'],
                         db_header.value['oldest_transaction'], db_header.value['oldest_active'],
                         db_header.value['oldest_snapshot'], db_header.value['next_transaction'],
