@@ -111,7 +111,7 @@ class TableStat:
         self.fill_80 = None
         self.fill_99 = None
         self.re = {
-            'name': re.compile('^([0-9A-Z_$]+) \([0-9]+\)$'),
+            'name': re.compile('^([^ ].+) \([0-9]+\)$'),
             'ppp': re.compile('^ {4}Primary pointer page: ([0-9]+), Index root page: ([0-9]+)$'),
             'formats': re.compile('^ {4}Total formats: ([0-9]+), used formats: ([0-9]+)$'),
             'avg_rec_len': re.compile('^ {4}Average record length: ([0-9\.]+), total records: ([0-9]+)'),
@@ -188,7 +188,7 @@ class IndexStat:
         self.fill_80 = None
         self.fill_99 = None
         self.re = {
-            'name': re.compile('^ {4}Index ([0-9A-Z_$]+) \(([0-9]+)\)$'),
+            'name': re.compile('^ {4}Index (.+) \(([0-9]+)\)$'),
             'depth': re.compile('^\t(Root page: [0-9]+, )*depth: ([0-9]+), leaf buckets: ([0-9]+), nodes: ([0-9]+)$',
                                 re.IGNORECASE),
             'avg_data_len': re.compile('^\tAverage data length: ([0-9\.]+), total dup: ([0-9]+), max dup: ([0-9]+)$'),
