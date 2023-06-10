@@ -222,7 +222,8 @@ class IndexStat:
 class GStatToSQL:
     """Class description here"""
 
-    def __init__(self, gstat_file, gstat_date=date.today(), dsn='', db_user=None, db_pass=None, db_charset='UTF-8'):
+    def __init__(self, gstat_file, gstat_date=date.today(), dsn='', db_user=None, db_pass=None, db_charset='UTF-8',
+                 db_name=''):
         """Class init description here"""
         self.gstat_file = gstat_file
         self.gstat_date = gstat_date
@@ -230,9 +231,7 @@ class GStatToSQL:
         self.db_user = db_user
         self.db_pass = db_pass
         self.db_charset = db_charset
-        self.db_name = None
-        self.page_size = None
-        self.create_date = None
+        self.db_name = db_name
 
     def processing(self):
         """Class functions descriptions"""
@@ -258,6 +257,8 @@ class GStatToSQL:
                 print("Unrecognized string at ", fd.tell())
                 print(line)
                 exit(10)
+        if self.db_name != '':
+            db_header.value['database'] = self.db_name
         connection = fdb.connect(dsn=self.dsn, user=self.db_user, password=self.db_pass, charset=self.db_charset)
         # begin transaction
         cursor = connection.cursor()
@@ -492,10 +493,12 @@ if __name__ == '__main__':
                         help='DB password, default masterkey')
     parser.add_argument('--dsn', metavar='dsn', type=str, default='localhost:gstat',
                         help='DB connection string, default localhost:gstat')
+    parser.add_argument('--db_name', metavar='db_name', type=str, default='',
+                        help='DB name in statistics')
     args = parser.parse_args()
 
     gstat = GStatToSQL(gstat_file=args.gstat_file[0], gstat_date=args.date, dsn=args.dsn, db_user=args.user,
-                       db_pass=args.passwd)
+                       db_pass=args.passwd, db_name=args.db_name)
     gstat.processing()
 
     exit(0)
