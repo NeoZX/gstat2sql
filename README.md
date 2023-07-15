@@ -38,7 +38,7 @@ Statistics on the size of tables in the database. Size in section data, indexes,
     from DB_SIZE_TBL('/var/lib/firebird/employee.fdb', '2021-12-01')
     order by total_size desc
 
-Statistics on the size of tables in several databases whose name [like](1) 'rbd-'. Size in section data, indexes, BLOB:
+Statistics on the size of tables in several databases whose name like[^1] 'rbd-'. Size in section data, indexes, BLOB:
 
     select tbl_name, sum(total_size), sum(data_size), sum(idx_size), sum(blob_size)
     from DB_SIZE_TBL('rbd-', '2021-12-01')
@@ -62,4 +62,4 @@ BLOB size by tables in databases whose name is like 'rbd-':
 # Restrictions
 Tested on Firebird 2/3/4/5, RedDatabase 2.5/2.6/3/5
 
-[1] Here and below, like means an sql-operator.
+[^1]: Here and below, like means an sql-operator.

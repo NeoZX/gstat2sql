@@ -38,7 +38,7 @@ Python script to import text output of gstat utility (Firebird RDBMS) into DB.
     from DB_SIZE_TBL('/var/lib/firebird/employee.fdb', '2021-12-01')
     order by total_size desc
 
-Статистика по размеру таблиц в нескольких БД, имя которых [like](1) 'rbd-'. Размер в разрезе данные, индексы, BLOB:
+Статистика по размеру таблиц в нескольких БД, имя которых like[^1] 'rbd-'. Размер в разрезе данные, индексы, BLOB:
 
     select tbl_name, sum(total_size), sum(data_size), sum(idx_size), sum(blob_size)
     from DB_SIZE_TBL('rbd-', '2021-12-01')
@@ -62,4 +62,4 @@ Python script to import text output of gstat utility (Firebird RDBMS) into DB.
 # Ограничения
 Протестировано на Firebird 2/3/4/5, Ред Базе Данных 2.5/2.6/3/5
 
-[1]: Здесь и далее под like подразумевается sql-оператор.
+[^1]: Здесь и далее под like подразумевается sql-оператор.
