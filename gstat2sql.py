@@ -481,7 +481,7 @@ class GStatToSQL:
                         "VER_AVG_LEN, VER_TOTAL, VER_MAX, "
                         "FRAG_AVG_LEN, FRAG_TOTAL, FRAG_MAX, "
                         "BLOB_TOTAL, BLOB_TOTAL_LENGTH, BLOB_PAGES, "
-                        "BLOB_LEVEL1, BLOB_LEVEL2, BLOB_LEVEL3, "
+                        "BLOB_LEVEL0, BLOB_LEVEL1, BLOB_LEVEL2, "
                         "PAGES_DATA, PAGES_SLOT, PAGES_FILL_AVG, PAGES_BIG, "
                         "POINTER_PAGES, PRIMARY_PAGES, SECONDARY_PAGES, SWEPT_PAGES, "
                         "EMPTY_PAGES, FULL_PAGES, "
