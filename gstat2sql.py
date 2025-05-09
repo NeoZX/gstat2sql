@@ -94,8 +94,14 @@ class TableStat:
         self.blob_total_length = None
         self.blob_pages = None
         self.blob_level0 = None
+        self.blob_level0_length = None
+        self.blob_level0_pages = None
         self.blob_level1 = None
+        self.blob_level1_length = None
+        self.blob_level1_pages = None
         self.blob_level2 = None
+        self.blob_level2_length = None
+        self.blob_level2_pages = None
         self.pointer_pages = None
         self.pages_data = None
         self.pages_slot = None
@@ -125,6 +131,9 @@ class TableStat:
             'pack_effect': re.compile('^ {4}Average unpacked length: ([0-9.]+), compression ratio: ([0-9\.]+)'),
             'blobs': re.compile('^ {4}Blobs: ([0-9]+), total length: ([0-9]+), blob pages: ([0-9]+)$'),
             'blobs_levels': re.compile('^ {8}Level 0: ([0-9]+), Level 1: ([0-9]+), Level 2: ([0-9]+)$'),
+            'blob_level0': re.compile('^ {8}Level 0: ([0-9]+), total length: ([0-9]+), blob pages: ([0-9]+)$'),
+            'blob_level1': re.compile('^ {8}Level 1: ([0-9]+), total length: ([0-9]+), blob pages: ([0-9]+)$'),
+            'blob_level2': re.compile('^ {8}Level 2: ([0-9]+), total length: ([0-9]+), blob pages: ([0-9]+)$'),
             'data_pages': re.compile('^ {4}Data pages: ([0-9]+), data page slots: ([0-9]+), average fill: ([0-9]+)%'),
             'pointer_pages': re.compile('^ {4}Pointer pages: ([0-9]+), data page slots: ([0-9]+)$'),
             'data_pages_fill': re.compile('^ {4}Data pages: ([0-9]+), average fill: ([0-9]+)%'),
@@ -156,8 +165,14 @@ class TableStat:
         self.blob_total_length = None
         self.blob_pages = None
         self.blob_level0 = None
+        self.blob_level0_length = None
+        self.blob_level0_pages = None
         self.blob_level1 = None
+        self.blob_level1_length = None
+        self.blob_level1_pages = None
         self.blob_level2 = None
+        self.blob_level2_length = None
+        self.blob_level2_pages = None
         self.pages_data = None
         self.pages_slot = None
         self.pages_fill_avg = None
@@ -379,6 +394,21 @@ class GStatToSQL:
                     table.blob_level1 = table.re['blobs_levels'].search(line).group(2)
                     table.blob_level2 = table.re['blobs_levels'].search(line).group(3)
                     line = fd.readline()
+                if table.re['blob_level0'].search(line):
+                    table.blob_level0 = table.re['blob_level0'].search(line).group(1)
+                    table.blob_level0_length = table.re['blob_level0'].search(line).group(2)
+                    table.blob_level0_pages = table.re['blob_level0'].search(line).group(3)
+                    line = fd.readline()
+                elif table.re['blob_level1'].search(line):
+                    table.blob_level1 = table.re['blob_level1'].search(line).group(1)
+                    table.blob_level1_length = table.re['blob_level1'].search(line).group(2)
+                    table.blob_level1_pages = table.re['blob_level1'].search(line).group(3)
+                    line = fd.readline()
+                elif table.re['blob_level2'].search(line):
+                    table.blob_level2 = table.re['blob_level2'].search(line).group(1)
+                    table.blob_level2_length = table.re['blob_level2'].search(line).group(2)
+                    table.blob_level2_pages = table.re['blob_level2'].search(line).group(3)
+                    line = fd.readline()
                 continue
             elif table.re['data_pages'].search(line):
                 table.pages_data = table.re['data_pages'].search(line).group(1)
@@ -486,21 +516,25 @@ class GStatToSQL:
                         "VER_AVG_LEN, VER_TOTAL, VER_MAX, "
                         "FRAG_AVG_LEN, FRAG_TOTAL, FRAG_MAX, "
                         "BLOB_TOTAL, BLOB_TOTAL_LENGTH, BLOB_PAGES, "
-                        "BLOB_LEVEL0, BLOB_LEVEL1, BLOB_LEVEL2, "
+                        "BLOB_LEVEL0, BLOB_LEVEL0_LENGTH, BLOB_LEVEL0_PAGE, " 
+                        "BLOB_LEVEL1, BLOB_LEVEL1_LENGTH, BLOB_LEVEL1_PAGE, " 
+                        "BLOB_LEVEL2, BLOB_LEVEL2_LENGTH, BLOB_LEVEL2_PAGE, " 
                         "PAGES_DATA, PAGES_SLOT, PAGES_FILL_AVG, PAGES_BIG, "
                         "POINTER_PAGES, PRIMARY_PAGES, SECONDARY_PAGES, SWEPT_PAGES, "
                         "EMPTY_PAGES, FULL_PAGES, TBL_SIZE, "
                         "FILL_20, FILL_40, FILL_60, FILL_80, FILL_99, "
                         "FORMATS_TOTAL, FORMATS_USED, AVG_UNPACK_LEN, COMPRESS_RATIO) "
                         "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
-                        "?, ?, ?, ?, ?, ?, ?, ?) "
+                        "?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                         "matching (DB_ID, \"NAME\") "
                         "returning ID;",
                         (db_id, table.name, table.tabel_space, table.rec_avg_len, table.rec_total,
                          table.ver_avg_len, table.ver_total, table.ver_max,
                          table.frag_avg_len, table.frag_total, table.frag_max,
                          table.blob_total, table.blob_total_length, table.blob_pages,
-                         table.blob_level0, table.blob_level1, table.blob_level2,
+                         table.blob_level0, table.blob_level0_length, table.blob_level0_pages,
+                         table.blob_level1, table.blob_level1_length, table.blob_level1_pages,
+                         table.blob_level2, table.blob_level2_length, table.blob_level2_pages,
                          table.pages_data, table.pages_slot, table.pages_fill_avg, table.pages_big,
                          table.pointer_pages, table.primary_pages, table.secondary_pages, table.swept_pages,
                          table.empty_pages, table.full_pages, table.table_size,
