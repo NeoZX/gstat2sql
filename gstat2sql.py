@@ -106,6 +106,7 @@ class TableStat:
         self.empty_pages = None
         self.full_pages = None
         self.pages_big = None
+        self.table_size = None
         self.fill_20 = None
         self.fill_40 = None
         self.fill_60 = None
@@ -132,6 +133,7 @@ class TableStat:
             'empty_full': re.compile('^ {4}Empty pages: ([0-9]+), full pages: ([0-9]+)$'),
             'big_record_pages': re.compile('^ {4}Big record pages: ([0-9]+)$'),
             'fill_distribution': re.compile('^ {4}Fill distribution:$'),
+            'table_size': re.compile('^ {4}Table size: ([0-9]+) bytes$'),
             'fill_0-19': re.compile('^\t 0 - 19% = ([0-9]+)$'),
             'fill_20-39': re.compile('^\t20 - 39% = ([0-9]+)$'),
             'fill_40-59': re.compile('^\t40 - 59% = ([0-9]+)$'),
@@ -160,6 +162,7 @@ class TableStat:
         self.pages_slot = None
         self.pages_fill_avg = None
         self.pages_big = None
+        self.table_size = None
         self.fill_20 = None
         self.fill_40 = None
         self.fill_60 = None
@@ -401,6 +404,8 @@ class GStatToSQL:
                 continue
             elif table.re['big_record_pages'].search(line):
                 table.pages_big = table.re['big_record_pages'].search(line).group(1)
+            elif table.re['table_size'].search(line):
+                table.table_size = table.re['table_size'].search(line).group(1)
             elif table.re['fill_distribution'].search(line):
                 line = fd.readline()
                 if table.re['fill_0-19'].search(line):
@@ -484,11 +489,11 @@ class GStatToSQL:
                         "BLOB_LEVEL0, BLOB_LEVEL1, BLOB_LEVEL2, "
                         "PAGES_DATA, PAGES_SLOT, PAGES_FILL_AVG, PAGES_BIG, "
                         "POINTER_PAGES, PRIMARY_PAGES, SECONDARY_PAGES, SWEPT_PAGES, "
-                        "EMPTY_PAGES, FULL_PAGES, "
+                        "EMPTY_PAGES, FULL_PAGES, TBL_SIZE, "
                         "FILL_20, FILL_40, FILL_60, FILL_80, FILL_99, "
                         "FORMATS_TOTAL, FORMATS_USED, AVG_UNPACK_LEN, COMPRESS_RATIO) "
                         "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,"
-                        "?, ?, ?, ?, ?, ?, ?) "
+                        "?, ?, ?, ?, ?, ?, ?, ?) "
                         "matching (DB_ID, \"NAME\") "
                         "returning ID;",
                         (db_id, table.name, table.tabel_space, table.rec_avg_len, table.rec_total,
@@ -498,7 +503,7 @@ class GStatToSQL:
                          table.blob_level0, table.blob_level1, table.blob_level2,
                          table.pages_data, table.pages_slot, table.pages_fill_avg, table.pages_big,
                          table.pointer_pages, table.primary_pages, table.secondary_pages, table.swept_pages,
-                         table.empty_pages, table.full_pages,
+                         table.empty_pages, table.full_pages, table.table_size,
                          table.fill_20, table.fill_40, table.fill_60, table.fill_80, table.fill_99,
                          table.formats_total, table.formats_used, table.avg_unpack_length, table.compress_ratio))
                     tbl_id = cursor.fetchone()[0]
