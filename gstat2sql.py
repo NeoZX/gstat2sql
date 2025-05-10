@@ -399,12 +399,12 @@ class GStatToSQL:
                     table.blob_level0_length = table.re['blob_level0'].search(line).group(2)
                     table.blob_level0_pages = table.re['blob_level0'].search(line).group(3)
                     line = fd.readline()
-                elif table.re['blob_level1'].search(line):
+                if table.re['blob_level1'].search(line):
                     table.blob_level1 = table.re['blob_level1'].search(line).group(1)
                     table.blob_level1_length = table.re['blob_level1'].search(line).group(2)
                     table.blob_level1_pages = table.re['blob_level1'].search(line).group(3)
                     line = fd.readline()
-                elif table.re['blob_level2'].search(line):
+                if table.re['blob_level2'].search(line):
                     table.blob_level2 = table.re['blob_level2'].search(line).group(1)
                     table.blob_level2_length = table.re['blob_level2'].search(line).group(2)
                     table.blob_level2_pages = table.re['blob_level2'].search(line).group(3)
