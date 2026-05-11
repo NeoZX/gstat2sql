@@ -119,7 +119,7 @@ class TableStat:
         self.fill_80 = None
         self.fill_99 = None
         self.re = {
-            'name': re.compile('^([^ ].+) \([0-9]+\)$'),
+            'name': re.compile('^([^ ].*) \([0-9]+\)$'),
             'table_space': re.compile('^ {4}Tablespace: (.+)$'),
             'ppp': re.compile('^ {4}Primary pointer page: ([0-9]+), Index root page: ([0-9]+)$'),
             'formats': re.compile('^ {4}Total formats: ([0-9]+), used formats: ([0-9]+)$'),
